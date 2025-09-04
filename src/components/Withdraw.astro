@@ -1,0 +1,199 @@
+<div class="withdraw-container">
+	<h3>Withdraw Assets</h3>
+	<p class="withdraw-description">
+		Request withdrawal of your S-Tokens. The withdrawal will be processed by the vault and you'll receive the underlying assets.
+	</p>
+	<div class="withdraw-form">
+		<label for="withdraw-shares">S-Token Shares to Withdraw:</label>
+		<input type="number" id="withdraw-shares" placeholder="Enter shares amount" min="0" step="0.000001" />
+		<label for="min-amount-out">Minimum Amount Out (optional):</label>
+		<input type="number" id="min-amount-out" placeholder="Enter minimum amount (0 = accept any)" min="0" step="0.000001" />
+		<button id="withdraw-button" disabled>Request Withdrawal</button>
+	</div>
+	<div id="withdraw-status" class="status-message"></div>
+</div>
+
+<style>
+	.withdraw-container {
+		margin: 2rem 0;
+		padding: 1.5rem;
+		border: 1px solid rgba(var(--accent-light), 25%);
+		background: linear-gradient(rgba(var(--accent-dark), 66%), rgba(var(--accent-dark), 33%));
+		border-radius: 8px;
+	}
+
+	.withdraw-description {
+		color: rgb(var(--accent-light));
+		font-size: 0.9rem;
+		margin-bottom: 1rem;
+		opacity: 0.8;
+	}
+
+	.withdraw-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.withdraw-form label {
+		color: rgb(var(--accent-light));
+		font-weight: bold;
+	}
+
+	.withdraw-form input {
+		padding: 0.75rem;
+		border: 1px solid rgba(var(--accent-light), 25%);
+		border-radius: 4px;
+		background: rgba(var(--accent-dark), 50%);
+		color: white;
+		font-size: 1rem;
+	}
+
+	.withdraw-form input:focus {
+		outline: none;
+		border-color: rgb(var(--accent-light));
+	}
+
+	.withdraw-form button {
+		padding: 0.75rem 1.5rem;
+		background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+		border: none;
+		border-radius: 4px;
+		color: white;
+		font-weight: bold;
+		cursor: pointer;
+		transition: opacity 0.2s;
+	}
+
+	.withdraw-form button:hover:not(:disabled) {
+		opacity: 0.8;
+	}
+
+	.withdraw-form button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.status-message {
+		padding: 0.5rem;
+		border-radius: 4px;
+		font-weight: bold;
+		text-align: center;
+	}
+
+	.status-message.success {
+		background: rgba(0, 255, 0, 0.2);
+		color: #00ff00;
+		border: 1px solid #00ff00;
+	}
+
+	.status-message.error {
+		background: rgba(255, 0, 0, 0.2);
+		color: #ff0000;
+		border: 1px solid #ff0000;
+	}
+
+	.status-message.info {
+		background: rgba(0, 150, 255, 0.2);
+		color: #0096ff;
+		border: 1px solid #0096ff;
+	}
+</style>
+
+<script>
+	import { getPublicKey, signTransaction } from "../stellar-wallets-kit";
+	import stoken from "../contracts/stoken";
+
+	const withdrawSharesInput = document.getElementById('withdraw-shares') as HTMLInputElement;
+	const minAmountOutInput = document.getElementById('min-amount-out') as HTMLInputElement;
+	const withdrawButton = document.getElementById('withdraw-button') as HTMLButtonElement;
+	const statusMessage = document.getElementById('withdraw-status') as HTMLElement;
+
+	function showStatus(message: string, type: 'success' | 'error' | 'info' = 'info') {
+		statusMessage.textContent = message;
+		statusMessage.className = `status-message ${type}`;
+	}
+
+	function clearStatus() {
+		statusMessage.textContent = '';
+		statusMessage.className = 'status-message';
+	}
+
+	async function checkWalletConnection() {
+		const publicKey = await getPublicKey();
+		const sharesAmount = parseFloat(withdrawSharesInput.value);
+		const minAmount = parseFloat(minAmountOutInput.value) || 0;
+		
+		withdrawButton.disabled = !publicKey || 
+			!withdrawSharesInput.value || 
+			sharesAmount <= 0 || 
+			minAmount < 0;
+	}
+
+	withdrawSharesInput.addEventListener('input', checkWalletConnection);
+	minAmountOutInput.addEventListener('input', checkWalletConnection);
+
+	withdrawButton.addEventListener('click', async () => {
+		const publicKey = await getPublicKey();
+		if (!publicKey) {
+			showStatus('Please connect your wallet first', 'error');
+			return;
+		} else {
+            stoken.options.publicKey = publicKey;
+            stoken.options.signTransaction = signTransaction;
+        }
+
+		const sharesAmount = parseFloat(withdrawSharesInput.value);
+		const minAmountOut = parseFloat(minAmountOutInput.value) || 0;
+		
+		if (sharesAmount <= 0) {
+			showStatus('Please enter a valid shares amount', 'error');
+			return;
+		}
+
+		if (minAmountOut < 0) {
+			showStatus('Minimum amount out cannot be negative', 'error');
+			return;
+		}
+
+		try {
+			showStatus('Processing withdrawal request...', 'info');
+			withdrawButton.disabled = true;
+
+			// Call the withdraw_request function on the stoken contract
+			const tx = await stoken.withdraw_request({
+				caller: publicKey,
+				shares: BigInt(Math.floor(sharesAmount * 10000000)), // Convert to smallest unit (7 decimals precision)
+				min_amount_out: BigInt(Math.floor(minAmountOut * 10000000)) // Convert to smallest unit (7 decimals precision)
+			});
+
+			await tx.signAndSend();
+
+			showStatus('Withdrawal request submitted successfully!', 'success');
+			withdrawSharesInput.value = '';
+			minAmountOutInput.value = '';
+			
+			// Trigger balance update
+			window.dispatchEvent(new CustomEvent('walletConnected'));
+			
+		} catch (error) {
+			console.error('Withdrawal request error:', error);
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			showStatus(`Withdrawal request failed: ${errorMessage}`, 'error');
+		} finally {
+			withdrawButton.disabled = false;
+			checkWalletConnection();
+		}
+	});
+
+	// Check wallet connection on load
+	checkWalletConnection();
+
+	// Listen for wallet connection changes
+	window.addEventListener('walletConnected', checkWalletConnection);
+	window.addEventListener('walletDisconnected', () => {
+		withdrawButton.disabled = true;
+		clearStatus();
+	});
+</script>

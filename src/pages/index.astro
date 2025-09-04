@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import ConnectWallet from "../components/ConnectWallet.astro";
 import Deposit from "../components/Deposit.astro";
 import Mint from "../components/Mint.astro";
+import Withdraw from "../components/Withdraw.astro";
 import stoken from "../contracts/stoken";
 import asset from "../contracts/asset";
 
@@ -57,6 +58,7 @@ const { result: isPaused } = await stoken.is_paused();
 		<ConnectWallet />
 		<Mint />
 		<Deposit />
+		<Withdraw />
 		<p class="instructions">
 			Total Shares: {formatAmount(totalShares)}<br />
 			Total Assets in Vault: {formatAmount(totalAssets)}<br />
