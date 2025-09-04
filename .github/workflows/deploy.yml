@@ -26,7 +26,10 @@ jobs:
           # path: . # The root location of your Astro project inside the repository. (optional)
           # node-version: 20 # The specific version of Node that should be used to build your site. Defaults to 20. (optional)
           # package-manager: pnpm@latest # The Node package manager that should be used to install dependencies and build your site. Automatically detected based on your lockfile. (optional)
-
+        env:
+          PUBLIC_STELLAR_NETWORK_PASSPHRASE: 'Test SDF Network ; September 2015' 
+          PUBLIC_STELLAR_RPC_URL: 'https://soroban-testnet.stellar.org:443'
+  
   deploy:
     needs: build
     runs-on: ubuntu-latest
