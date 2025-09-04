@@ -1,4 +1,4 @@
-import * as Client from 'stoken';
+import * as Client from '../../packages/stoken/dist';
 import { rpcUrl } from './util';
 
 export default new Client.Client({
