@@ -111,8 +111,8 @@ function importAll() {
 }
 
 // Calling the functions (equivalent to the last part of your bash script)
-fundAll();
-buildAll();
-deployAll();
-bindAll();
+// fundAll();
+// buildAll();
+// // deployAll();
+// bindAll();
 importAll();

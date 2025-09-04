@@ -1,0 +1,180 @@
+<div class="mint-container">
+	<h3>Mint Asset Tokens</h3>
+	<p class="mint-description">
+		Mint new Asset tokens to your wallet. This is permissionless - any connected wallet can mint tokens.
+	</p>
+	<div class="mint-form">
+		<label for="mint-amount">Amount to Mint:</label>
+		<input type="number" id="mint-amount" placeholder="Enter amount" min="0" step="0.000001" />
+		<button id="mint-button" disabled>Mint Tokens</button>
+	</div>
+	<div id="mint-status" class="status-message"></div>
+</div>
+
+<style>
+	.mint-container {
+		margin: 2rem 0;
+		padding: 1.5rem;
+		border: 1px solid rgba(var(--accent-light), 25%);
+		background: linear-gradient(rgba(var(--accent-dark), 66%), rgba(var(--accent-dark), 33%));
+		border-radius: 8px;
+	}
+
+	.mint-description {
+		color: rgb(var(--accent-light));
+		font-size: 0.9rem;
+		margin-bottom: 1rem;
+		opacity: 0.8;
+	}
+
+	.mint-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.mint-form label {
+		color: rgb(var(--accent-light));
+		font-weight: bold;
+	}
+
+	.mint-form input {
+		padding: 0.75rem;
+		border: 1px solid rgba(var(--accent-light), 25%);
+		border-radius: 4px;
+		background: rgba(var(--accent-dark), 50%);
+		color: white;
+		font-size: 1rem;
+	}
+
+	.mint-form input:focus {
+		outline: none;
+		border-color: rgb(var(--accent-light));
+	}
+
+	.mint-form button {
+		padding: 0.75rem 1.5rem;
+		background: linear-gradient(45deg, #4CAF50, #45a049);
+		border: none;
+		border-radius: 4px;
+		color: white;
+		font-weight: bold;
+		cursor: pointer;
+		transition: opacity 0.2s;
+	}
+
+	.mint-form button:hover:not(:disabled) {
+		opacity: 0.8;
+	}
+
+	.mint-form button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.status-message {
+		padding: 0.5rem;
+		border-radius: 4px;
+		font-weight: bold;
+		text-align: center;
+	}
+
+	.status-message.success {
+		background: rgba(0, 255, 0, 0.2);
+		color: #00ff00;
+		border: 1px solid #00ff00;
+	}
+
+	.status-message.error {
+		background: rgba(255, 0, 0, 0.2);
+		color: #ff0000;
+		border: 1px solid #ff0000;
+	}
+
+	.status-message.info {
+		background: rgba(0, 150, 255, 0.2);
+		color: #0096ff;
+		border: 1px solid #0096ff;
+	}
+</style>
+
+<script>
+	import { getPublicKey, signTransaction } from "../stellar-wallets-kit";
+	import asset from "../contracts/asset";
+
+	const mintAmountInput = document.getElementById('mint-amount') as HTMLInputElement;
+	const mintButton = document.getElementById('mint-button') as HTMLButtonElement;
+	const statusMessage = document.getElementById('mint-status') as HTMLElement;
+
+	function showStatus(message: string, type: 'success' | 'error' | 'info' = 'info') {
+		statusMessage.textContent = message;
+		statusMessage.className = `status-message ${type}`;
+	}
+
+	function clearStatus() {
+		statusMessage.textContent = '';
+		statusMessage.className = 'status-message';
+	}
+
+	async function checkWalletConnection() {
+		const publicKey = await getPublicKey();
+		mintButton.disabled = !publicKey || !mintAmountInput.value || parseFloat(mintAmountInput.value) <= 0;
+	}
+
+	mintAmountInput.addEventListener('input', checkWalletConnection);
+
+	mintButton.addEventListener('click', async () => {
+		const publicKey = await getPublicKey();
+		if (!publicKey) {
+			showStatus('Please connect your wallet first', 'error');
+			return;
+		} else {
+            asset.options.publicKey = publicKey;
+            asset.options.signTransaction = signTransaction;
+        }
+
+		const amount = parseFloat(mintAmountInput.value);
+		if (amount <= 0) {
+			showStatus('Please enter a valid amount', 'error');
+			return;
+		}
+
+		try {
+			showStatus('Minting tokens...', 'info');
+			mintButton.disabled = true;
+
+			// Call the mint function on the asset contract
+			const tx = await asset.mint({
+				account: publicKey,
+				amount: BigInt(Math.floor(amount * 10000000)) // Convert to smallest unit (7 decimals precision)
+			});
+
+            await tx.signAndSend();
+
+			showStatus('Tokens minted successfully!', 'success');
+			mintAmountInput.value = '';
+			
+			// Trigger balance update
+			window.dispatchEvent(new CustomEvent('walletConnected'));
+			
+		} catch (error) {
+			console.error('Mint error:', error);
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			showStatus(`Minting failed: ${errorMessage}`, 'error');
+		} finally {
+			mintButton.disabled = false;
+			checkWalletConnection();
+		}
+	});
+
+	// Check wallet connection on load
+	checkWalletConnection();
+
+	// Listen for wallet connection changes
+	window.addEventListener('walletConnected', checkWalletConnection);
+	window.addEventListener('walletDisconnected', () => {
+		mintButton.disabled = true;
+		clearStatus();
+	});
+</script>

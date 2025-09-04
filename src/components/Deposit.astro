@@ -1,0 +1,177 @@
+<div class="deposit-container">
+	<h3>Deposit Assets</h3>
+	<div class="deposit-form">
+		<label for="deposit-amount">Amount to Deposit:</label>
+		<input type="number" id="deposit-amount" placeholder="Enter amount" min="0" step="0.000001" />
+		<button id="deposit-button" disabled>Deposit</button>
+	</div>
+	<div id="deposit-status" class="status-message"></div>
+</div>
+
+<style>
+	.deposit-container {
+		margin: 2rem 0;
+		padding: 1.5rem;
+		border: 1px solid rgba(var(--accent-light), 25%);
+		background: linear-gradient(rgba(var(--accent-dark), 66%), rgba(var(--accent-dark), 33%));
+		border-radius: 8px;
+	}
+
+	.deposit-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.deposit-form label {
+		color: rgb(var(--accent-light));
+		font-weight: bold;
+	}
+
+	.deposit-form input {
+		padding: 0.75rem;
+		border: 1px solid rgba(var(--accent-light), 25%);
+		border-radius: 4px;
+		background: rgba(var(--accent-dark), 50%);
+		color: white;
+		font-size: 1rem;
+	}
+
+	.deposit-form input:focus {
+		outline: none;
+		border-color: rgb(var(--accent-light));
+	}
+
+	.deposit-form button {
+		padding: 0.75rem 1.5rem;
+		background: linear-gradient(45deg, rgb(var(--accent-light)), rgb(var(--accent-dark)));
+		border: none;
+		border-radius: 4px;
+		color: white;
+		font-weight: bold;
+		cursor: pointer;
+		transition: opacity 0.2s;
+	}
+
+	.deposit-form button:hover:not(:disabled) {
+		opacity: 0.8;
+	}
+
+	.deposit-form button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.status-message {
+		padding: 0.5rem;
+		border-radius: 4px;
+		font-weight: bold;
+		text-align: center;
+	}
+
+	.status-message.success {
+		background: rgba(0, 255, 0, 0.2);
+		color: #00ff00;
+		border: 1px solid #00ff00;
+	}
+
+	.status-message.error {
+		background: rgba(255, 0, 0, 0.2);
+		color: #ff0000;
+		border: 1px solid #ff0000;
+	}
+
+	.status-message.info {
+		background: rgba(0, 150, 255, 0.2);
+		color: #0096ff;
+		border: 1px solid #0096ff;
+	}
+</style>
+
+<script>
+	import { getPublicKey, signTransaction } from "../stellar-wallets-kit";
+	import stoken from "../contracts/stoken";
+
+	const depositAmountInput = document.getElementById('deposit-amount') as HTMLInputElement;
+	const depositButton = document.getElementById('deposit-button') as HTMLButtonElement;
+	const statusMessage = document.getElementById('deposit-status') as HTMLElement;
+
+	function showStatus(message: string, type: 'success' | 'error' | 'info' = 'info') {
+		statusMessage.textContent = message;
+		statusMessage.className = `status-message ${type}`;
+	}
+
+	function clearStatus() {
+		statusMessage.textContent = '';
+		statusMessage.className = 'status-message';
+	}
+
+	async function checkWalletConnection() {
+		const publicKey = await getPublicKey();
+		depositButton.disabled = !publicKey || !depositAmountInput.value || parseFloat(depositAmountInput.value) <= 0;
+	}
+
+	depositAmountInput.addEventListener('input', checkWalletConnection);
+
+	depositButton.addEventListener('click', async () => {
+		const publicKey = await getPublicKey();
+		if (!publicKey) {
+			showStatus('Please connect your wallet first', 'error');
+			return;
+		} else {
+            stoken.options.publicKey = publicKey;
+            stoken.options.signTransaction = signTransaction;
+        }
+
+		const amount = parseFloat(depositAmountInput.value);
+		if (amount <= 0) {
+			showStatus('Please enter a valid amount', 'error');
+			return;
+		}
+
+		try {
+			showStatus('Processing deposit...', 'info');
+			depositButton.disabled = true;
+
+			// First, we need to approve the asset transfer to the vault
+			// This is a simplified version - in a real app you'd need proper approval flow
+			// For now, we'll assume the user has already approved the transfer
+			// In a real implementation, you'd call the asset contract's approve function first
+			
+			// Call the deposit function on the stoken contract
+			const tx = await stoken.deposit_core({
+				amount: BigInt(Math.floor(amount * 10000000)), // Convert to smallest unit (7 decimals precision)
+				caller: publicKey,
+				min_shares: undefined, // No minimum shares requirement for now
+				beneficiary: publicKey
+			});
+
+			await tx.signAndSend();
+
+			showStatus('Deposit successful!', 'success');
+			depositAmountInput.value = '';
+			
+			// Trigger balance update
+			window.dispatchEvent(new CustomEvent('walletConnected'));
+			
+		} catch (error) {
+			console.error('Deposit error:', error);
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			showStatus(`Deposit failed: ${errorMessage}`, 'error');
+		} finally {
+			depositButton.disabled = false;
+			checkWalletConnection();
+		}
+	});
+
+	// Check wallet connection on load
+	checkWalletConnection();
+
+	// Listen for wallet connection changes
+	window.addEventListener('walletConnected', checkWalletConnection);
+	window.addEventListener('walletDisconnected', () => {
+		depositButton.disabled = true;
+		clearStatus();
+	});
+</script>
