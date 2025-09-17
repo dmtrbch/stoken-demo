@@ -4,6 +4,8 @@ import ConnectWallet from "../components/ConnectWallet.astro";
 import Deposit from "../components/Deposit.astro";
 import Mint from "../components/Mint.astro";
 import Withdraw from "../components/Withdraw.astro";
+import ProcessDeposit from "../components/ProcessDeposit.astro";
+import FulfillWithdrawal from "../components/FulfillWithdrawal.astro";
 import stoken from "../contracts/stoken";
 import asset from "../contracts/asset";
 
@@ -59,11 +61,20 @@ const { result: isPaused } = await stoken.is_paused();
 		<Mint />
 		<Deposit />
 		<Withdraw />
+		<div id="process-deposit-container" style="display: none;">
+			<ProcessDeposit />
+		</div>
+		<div id="fulfill-withdrawal-container" style="display: none;">
+			<FulfillWithdrawal />
+		</div>
 		<p class="instructions">
 			Total Shares: {formatAmount(totalShares)}<br />
 			Total Assets in Vault: {formatAmount(totalAssets)}<br />
+			Current Price: <span id="current-price">Loading...</span><br />
 			Your {symbol} Balance: <span id="user-stoken-balance">Loading...</span><br />
 			Your {assetSymbol} Balance: <span id="user-asset-balance">Loading...</span><br />
+			Asset Manager {symbol} Balance: <span id="asset-manager-stoken-balance">Loading...</span><br />
+			Asset Manager {assetSymbol} Balance: <span id="asset-manager-asset-balance">Loading...</span><br />
 			Vault Status: {isPaused ? 'Paused' : 'Active'}<br /> 
 		</p>
 	</main>
@@ -147,12 +158,42 @@ const { result: isPaused } = await stoken.is_paused();
 		if (!publicKey) {
 			const stokenElement = document.getElementById('user-stoken-balance');
 			const assetElement = document.getElementById('user-asset-balance');
+			const assetManagerStokenElement = document.getElementById('asset-manager-stoken-balance');
+			const assetManagerAssetElement = document.getElementById('asset-manager-asset-balance');
+			const currentPriceElement = document.getElementById('current-price');
+			const processDepositContainer = document.getElementById('process-deposit-container');
+			const fulfillWithdrawalContainer = document.getElementById('fulfill-withdrawal-container');
 			if (stokenElement) stokenElement.textContent = 'Not connected';
 			if (assetElement) assetElement.textContent = 'Not connected';
+			if (assetManagerStokenElement) assetManagerStokenElement.textContent = 'Loading...';
+			if (assetManagerAssetElement) assetManagerAssetElement.textContent = 'Loading...';
+			if (currentPriceElement) currentPriceElement.textContent = 'Loading...';
+			if (processDepositContainer) processDepositContainer.style.display = 'none';
+			if (fulfillWithdrawalContainer) fulfillWithdrawalContainer.style.display = 'none';
 			return;
 		}
 
+		// Check if the connected wallet is the authorized processor
+		const authorizedProcessor = 'GBKI6GEUE5D4DKLXXXFZ53KDJ6JYWPHPRM56VJNRAZPWQY7EDQTKRYCL';
+		const processDepositContainer = document.getElementById('process-deposit-container');
+		const fulfillWithdrawalContainer = document.getElementById('fulfill-withdrawal-container');
+		
+		if (publicKey === authorizedProcessor) {
+			if (processDepositContainer) processDepositContainer.style.display = 'block';
+			if (fulfillWithdrawalContainer) fulfillWithdrawalContainer.style.display = 'block';
+		} else {
+			if (processDepositContainer) processDepositContainer.style.display = 'none';
+			if (fulfillWithdrawalContainer) fulfillWithdrawalContainer.style.display = 'none';
+		}
+
 		try {
+			// Get current price
+			const { result: currentPrice } = await stoken.price();
+			const currentPriceElement = document.getElementById('current-price');
+			if (currentPriceElement) {
+				currentPriceElement.textContent = formatAmount(currentPrice);
+			}
+
 			// Get user's SToken balance
 			const { result: stokenBalance } = await stoken.balance({ account: publicKey });
 			const stokenElement = document.getElementById('user-stoken-balance');
@@ -166,12 +207,35 @@ const { result: isPaused } = await stoken.is_paused();
 			if (assetElement) {
 				assetElement.textContent = formatAmount(assetBalance);
 			}
+
+			// Get asset manager address
+			const { result: assetManagerAddress } = await stoken.asset_manager();
+			
+			// Get asset manager's SToken balance
+			const { result: assetManagerStokenBalance } = await stoken.balance({ account: assetManagerAddress });
+			const assetManagerStokenElement = document.getElementById('asset-manager-stoken-balance');
+			if (assetManagerStokenElement) {
+				assetManagerStokenElement.textContent = formatAmount(assetManagerStokenBalance);
+			}
+
+			// Get asset manager's asset balance
+			const { result: assetManagerAssetBalance } = await asset.balance({ account: assetManagerAddress });
+			const assetManagerAssetElement = document.getElementById('asset-manager-asset-balance');
+			if (assetManagerAssetElement) {
+				assetManagerAssetElement.textContent = formatAmount(assetManagerAssetBalance);
+			}
 		} catch (error) {
 			console.error('Error fetching balances:', error);
 			const stokenElement = document.getElementById('user-stoken-balance');
 			const assetElement = document.getElementById('user-asset-balance');
+			const assetManagerStokenElement = document.getElementById('asset-manager-stoken-balance');
+			const assetManagerAssetElement = document.getElementById('asset-manager-asset-balance');
+			const currentPriceElement = document.getElementById('current-price');
 			if (stokenElement) stokenElement.textContent = 'Error';
 			if (assetElement) assetElement.textContent = 'Error';
+			if (assetManagerStokenElement) assetManagerStokenElement.textContent = 'Error';
+			if (assetManagerAssetElement) assetManagerAssetElement.textContent = 'Error';
+			if (currentPriceElement) currentPriceElement.textContent = 'Error';
 		}
 	}
 
@@ -183,7 +247,13 @@ const { result: isPaused } = await stoken.is_paused();
 	window.addEventListener('walletDisconnected', () => {
 		const stokenElement = document.getElementById('user-stoken-balance');
 		const assetElement = document.getElementById('user-asset-balance');
+		const assetManagerStokenElement = document.getElementById('asset-manager-stoken-balance');
+		const assetManagerAssetElement = document.getElementById('asset-manager-asset-balance');
+		const currentPriceElement = document.getElementById('current-price');
 		if (stokenElement) stokenElement.textContent = 'Not connected';
 		if (assetElement) assetElement.textContent = 'Not connected';
+		if (assetManagerStokenElement) assetManagerStokenElement.textContent = 'Loading...';
+		if (assetManagerAssetElement) assetManagerAssetElement.textContent = 'Loading...';
+		if (currentPriceElement) currentPriceElement.textContent = 'Loading...';
 	});
 </script>
