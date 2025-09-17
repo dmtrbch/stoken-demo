@@ -21,6 +21,7 @@ const { result: assetSymbol } = await asset.symbol();
 const { result: symbol } = await stoken.symbol();
 const { result: totalShares } = await stoken.total_shares();
 const { result: totalAssets } = await stoken.total_assets();
+const { result: currentPrice } = await stoken.price();
 // get user balance of assets and use balance of shares
 const { result: isPaused } = await stoken.is_paused();
 ---
@@ -70,7 +71,7 @@ const { result: isPaused } = await stoken.is_paused();
 		<p class="instructions">
 			Total Shares: {formatAmount(totalShares)}<br />
 			Total Assets in Vault: {formatAmount(totalAssets)}<br />
-			Current Price: <span id="current-price">Loading...</span><br />
+			Price Per Share: {formatAmount(currentPrice)}<br />
 			Your {symbol} Balance: <span id="user-stoken-balance">Loading...</span><br />
 			Your {assetSymbol} Balance: <span id="user-asset-balance">Loading...</span><br />
 			Asset Manager {symbol} Balance: <span id="asset-manager-stoken-balance">Loading...</span><br />
@@ -160,14 +161,12 @@ const { result: isPaused } = await stoken.is_paused();
 			const assetElement = document.getElementById('user-asset-balance');
 			const assetManagerStokenElement = document.getElementById('asset-manager-stoken-balance');
 			const assetManagerAssetElement = document.getElementById('asset-manager-asset-balance');
-			const currentPriceElement = document.getElementById('current-price');
 			const processDepositContainer = document.getElementById('process-deposit-container');
 			const fulfillWithdrawalContainer = document.getElementById('fulfill-withdrawal-container');
 			if (stokenElement) stokenElement.textContent = 'Not connected';
 			if (assetElement) assetElement.textContent = 'Not connected';
 			if (assetManagerStokenElement) assetManagerStokenElement.textContent = 'Loading...';
 			if (assetManagerAssetElement) assetManagerAssetElement.textContent = 'Loading...';
-			if (currentPriceElement) currentPriceElement.textContent = 'Loading...';
 			if (processDepositContainer) processDepositContainer.style.display = 'none';
 			if (fulfillWithdrawalContainer) fulfillWithdrawalContainer.style.display = 'none';
 			return;
@@ -187,13 +186,6 @@ const { result: isPaused } = await stoken.is_paused();
 		}
 
 		try {
-			// Get current price
-			const { result: currentPrice } = await stoken.price();
-			const currentPriceElement = document.getElementById('current-price');
-			if (currentPriceElement) {
-				currentPriceElement.textContent = formatAmount(currentPrice);
-			}
-
 			// Get user's SToken balance
 			const { result: stokenBalance } = await stoken.balance({ account: publicKey });
 			const stokenElement = document.getElementById('user-stoken-balance');
@@ -230,12 +222,10 @@ const { result: isPaused } = await stoken.is_paused();
 			const assetElement = document.getElementById('user-asset-balance');
 			const assetManagerStokenElement = document.getElementById('asset-manager-stoken-balance');
 			const assetManagerAssetElement = document.getElementById('asset-manager-asset-balance');
-			const currentPriceElement = document.getElementById('current-price');
 			if (stokenElement) stokenElement.textContent = 'Error';
 			if (assetElement) assetElement.textContent = 'Error';
 			if (assetManagerStokenElement) assetManagerStokenElement.textContent = 'Error';
 			if (assetManagerAssetElement) assetManagerAssetElement.textContent = 'Error';
-			if (currentPriceElement) currentPriceElement.textContent = 'Error';
 		}
 	}
 
