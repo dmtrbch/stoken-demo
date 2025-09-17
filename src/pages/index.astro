@@ -69,6 +69,8 @@ const { result: isPaused } = await stoken.is_paused();
 			<FulfillWithdrawal />
 		</div>
 		<p class="instructions">
+			Total Shares: <span id="total-shares">Loading...</span><br />
+			Total Assets in Vault: <span id="total-assets-in-vault">Loading...</span><br />
 			Total Shares: {formatAmount(totalShares)}<br />
 			Total Assets in Vault: {formatAmount(totalAssets)}<br />
 			Price Per Share: {formatAmount(currentPrice)}<br />
@@ -157,12 +159,16 @@ const { result: isPaused } = await stoken.is_paused();
 		const publicKey = await getPublicKey();
 		
 		if (!publicKey) {
+			const totalSharesElement = document.getElementById('total-shares');
+			const totalAssetsInVaultElement = document.getElementById('total-assets-in-vault');
 			const stokenElement = document.getElementById('user-stoken-balance');
 			const assetElement = document.getElementById('user-asset-balance');
 			const assetManagerStokenElement = document.getElementById('asset-manager-stoken-balance');
 			const assetManagerAssetElement = document.getElementById('asset-manager-asset-balance');
 			const processDepositContainer = document.getElementById('process-deposit-container');
 			const fulfillWithdrawalContainer = document.getElementById('fulfill-withdrawal-container');
+			if (totalSharesElement) totalSharesElement.textContent = 'Loading...';
+			if (totalAssetsInVaultElement) totalAssetsInVaultElement.textContent = 'Loading...';
 			if (stokenElement) stokenElement.textContent = 'Not connected';
 			if (assetElement) assetElement.textContent = 'Not connected';
 			if (assetManagerStokenElement) assetManagerStokenElement.textContent = 'Loading...';
@@ -193,6 +199,20 @@ const { result: isPaused } = await stoken.is_paused();
 				stokenElement.textContent = formatAmount(stokenBalance);
 			}
 
+			// Get total shares
+			const { result: totalShares } = await stoken.total_shares();
+			const totalSharesElement = document.getElementById('total-shares');
+			if (totalSharesElement) {
+				totalSharesElement.textContent = formatAmount(totalShares);
+			}
+
+			// Get total assets in vault
+			const { result: totalAssets } = await stoken.total_assets();
+			const totalAssetsInVaultElement = document.getElementById('total-assets-in-vault');
+			if (totalAssetsInVaultElement) {
+				totalAssetsInVaultElement.textContent = formatAmount(totalAssets);
+			}
+
 			// Get user's asset balance
 			const { result: assetBalance } = await asset.balance({ account: publicKey });
 			const assetElement = document.getElementById('user-asset-balance');
@@ -218,10 +238,14 @@ const { result: isPaused } = await stoken.is_paused();
 			}
 		} catch (error) {
 			console.error('Error fetching balances:', error);
+			const totalSharesElement = document.getElementById('total-shares');
+			const totalAssetsInVaultElement = document.getElementById('total-assets-in-vault');
 			const stokenElement = document.getElementById('user-stoken-balance');
 			const assetElement = document.getElementById('user-asset-balance');
 			const assetManagerStokenElement = document.getElementById('asset-manager-stoken-balance');
 			const assetManagerAssetElement = document.getElementById('asset-manager-asset-balance');
+			if (totalSharesElement) totalSharesElement.textContent = 'Error';
+			if (totalAssetsInVaultElement) totalAssetsInVaultElement.textContent = 'Error';
 			if (stokenElement) stokenElement.textContent = 'Error';
 			if (assetElement) assetElement.textContent = 'Error';
 			if (assetManagerStokenElement) assetManagerStokenElement.textContent = 'Error';
@@ -235,11 +259,15 @@ const { result: isPaused } = await stoken.is_paused();
 	// Listen for wallet connection changes
 	window.addEventListener('walletConnected', updateUserBalances);
 	window.addEventListener('walletDisconnected', () => {
+		const totalSharesElement = document.getElementById('total-shares');
+		const totalAssetsInVaultElement = document.getElementById('total-assets-in-vault');
 		const stokenElement = document.getElementById('user-stoken-balance');
 		const assetElement = document.getElementById('user-asset-balance');
 		const assetManagerStokenElement = document.getElementById('asset-manager-stoken-balance');
 		const assetManagerAssetElement = document.getElementById('asset-manager-asset-balance');
 		const currentPriceElement = document.getElementById('current-price');
+		if (totalSharesElement) totalSharesElement.textContent = 'Loading...';
+		if (totalAssetsInVaultElement) totalAssetsInVaultElement.textContent = 'Loading...';
 		if (stokenElement) stokenElement.textContent = 'Not connected';
 		if (assetElement) assetElement.textContent = 'Not connected';
 		if (assetManagerStokenElement) assetManagerStokenElement.textContent = 'Loading...';
