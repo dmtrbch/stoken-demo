@@ -19,10 +19,7 @@ function formatAmount(rawAmount: string | number | bigint | undefined): string {
 
 const { result: assetSymbol } = await asset.symbol();
 const { result: symbol } = await stoken.symbol();
-const { result: totalShares } = await stoken.total_shares();
-const { result: totalAssets } = await stoken.total_assets();
 const { result: currentPrice } = await stoken.price();
-// get user balance of assets and use balance of shares
 const { result: isPaused } = await stoken.is_paused();
 ---
 
@@ -71,8 +68,6 @@ const { result: isPaused } = await stoken.is_paused();
 		<p class="instructions">
 			Total Shares: <span id="total-shares">Loading...</span><br />
 			Total Assets in Vault: <span id="total-assets-in-vault">Loading...</span><br />
-			Total Shares: {formatAmount(totalShares)}<br />
-			Total Assets in Vault: {formatAmount(totalAssets)}<br />
 			Price Per Share: {formatAmount(currentPrice)}<br />
 			Your {symbol} Balance: <span id="user-stoken-balance">Loading...</span><br />
 			Your {assetSymbol} Balance: <span id="user-asset-balance">Loading...</span><br />
