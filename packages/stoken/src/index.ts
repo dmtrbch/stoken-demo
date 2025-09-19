@@ -34,7 +34,7 @@ if (typeof window !== 'undefined') {
 export const networks = {
   testnet: {
     networkPassphrase: "Test SDF Network ; September 2015",
-    contractId: "CACA3KRAMSTVN363JLGUUF57DA7U54ZAKZPAZUPDWGOKLERHCYCQUOUV",
+    contractId: "CB7U3MEFKRFGVWBRBYQI5LGBR4Q542AUGKEK5ABXUVLCQXSZ5FLEKGGE",
   }
 } as const
 
@@ -353,6 +353,7 @@ export interface VaultInitConfig {
 }
 
 
+
 export interface PendingRoles {
   new_accountant: Option<string>;
   new_asset_manager: Option<string>;
@@ -363,6 +364,7 @@ export interface PendingRoles {
 }
 
 
+
 export interface PendingLimits {
   new_max_deviation_bps: Option<u32>;
   new_max_shares_per_user: Option<u64>;
@@ -371,6 +373,7 @@ export interface PendingLimits {
   new_min_shares_to_mint: Option<u64>;
   timestamp: u64;
 }
+
 
 
 export interface PendingCooldowns {
@@ -1488,6 +1491,26 @@ export interface Client {
   }) => Promise<AssembledTransaction<Result<void>>>
 
   /**
+   * Construct and simulate a total_idle transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  total_idle: (options?: {
+    /**
+     * The fee to pay for the transaction. Default: BASE_FEE
+     */
+    fee?: number;
+
+    /**
+     * The maximum amount of time to wait for the transaction to complete. Default: DEFAULT_TIMEOUT
+     */
+    timeoutInSeconds?: number;
+
+    /**
+     * Whether to automatically simulate the transaction when constructing the AssembledTransaction. Default: true
+     */
+    simulate?: boolean;
+  }) => Promise<AssembledTransaction<u64>>
+
+  /**
    * Construct and simulate a total_shares transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
    */
   total_shares: (options?: {
@@ -1631,6 +1654,86 @@ export interface Client {
    * Construct and simulate a min_shares_to_mint transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
    */
   min_shares_to_mint: (options?: {
+    /**
+     * The fee to pay for the transaction. Default: BASE_FEE
+     */
+    fee?: number;
+
+    /**
+     * The maximum amount of time to wait for the transaction to complete. Default: DEFAULT_TIMEOUT
+     */
+    timeoutInSeconds?: number;
+
+    /**
+     * Whether to automatically simulate the transaction when constructing the AssembledTransaction. Default: true
+     */
+    simulate?: boolean;
+  }) => Promise<AssembledTransaction<u64>>
+
+  /**
+   * Construct and simulate a get_withdraw_request transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  get_withdraw_request: ({request_id}: {request_id: u64}, options?: {
+    /**
+     * The fee to pay for the transaction. Default: BASE_FEE
+     */
+    fee?: number;
+
+    /**
+     * The maximum amount of time to wait for the transaction to complete. Default: DEFAULT_TIMEOUT
+     */
+    timeoutInSeconds?: number;
+
+    /**
+     * Whether to automatically simulate the transaction when constructing the AssembledTransaction. Default: true
+     */
+    simulate?: boolean;
+  }) => Promise<AssembledTransaction<readonly [u64, u64, u64, u64]>>
+
+  /**
+   * Construct and simulate a theoretical_out transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  theoretical_out: ({shares, price}: {shares: u64, price: u64}, options?: {
+    /**
+     * The fee to pay for the transaction. Default: BASE_FEE
+     */
+    fee?: number;
+
+    /**
+     * The maximum amount of time to wait for the transaction to complete. Default: DEFAULT_TIMEOUT
+     */
+    timeoutInSeconds?: number;
+
+    /**
+     * Whether to automatically simulate the transaction when constructing the AssembledTransaction. Default: true
+     */
+    simulate?: boolean;
+  }) => Promise<AssembledTransaction<u64>>
+
+  /**
+   * Construct and simulate a total_withdrawals_pending transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  total_withdrawals_pending: (options?: {
+    /**
+     * The fee to pay for the transaction. Default: BASE_FEE
+     */
+    fee?: number;
+
+    /**
+     * The maximum amount of time to wait for the transaction to complete. Default: DEFAULT_TIMEOUT
+     */
+    timeoutInSeconds?: number;
+
+    /**
+     * Whether to automatically simulate the transaction when constructing the AssembledTransaction. Default: true
+     */
+    simulate?: boolean;
+  }) => Promise<AssembledTransaction<u64>>
+
+  /**
+   * Construct and simulate a shares_in_custody transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  shares_in_custody: (options?: {
     /**
      * The fee to pay for the transaction. Default: BASE_FEE
      */
@@ -2222,6 +2325,7 @@ export class Client extends ContractClient {
         "AAAAAAAAAFhBY2NlcHQgYWxsb3dsaXN0IG1pbnQgLSB0aGlzIHNob3VsZCBiZSB0aGUgYWRkcmVzcyBvZiB0aGUgdmF1bHQgdGhhdCBpcyBiZWluZyBzd2FwcGVkIHRvAAAAFWFjY2VwdF9hbGxvd2xpc3RfbWludAAAAAAAAAEAAAAAAAAABG1pbnQAAAATAAAAAQAAA+kAAAPtAAAAAAAAB9AAAAAYU1Rva2VuQWxsb3dsaXN0TWludEVycm9y",
         "AAAAAAAAAAAAAAAVY2FuY2VsX2FsbG93bGlzdF9taW50AAAAAAAAAQAAAAAAAAAEbWludAAAABMAAAABAAAD6QAAA+0AAAAAAAAH0AAAABhTVG9rZW5BbGxvd2xpc3RNaW50RXJyb3I=",
         "AAAAAAAAAAAAAAAYd3JpdGVfdmF1bHRfdG90YWxfc2hhcmVzAAAAAgAAAAAAAAAEbWludAAAABMAAAAAAAAABnNoYXJlcwAAAAAABgAAAAEAAAPpAAAD7QAAAAAAAAfQAAAAGFNUb2tlbkFsbG93bGlzdE1pbnRFcnJvcg==",
+        "AAAAAAAAAAAAAAAKdG90YWxfaWRsZQAAAAAAAAAAAAEAAAAG",
         "AAAAAAAAAAAAAAAMdG90YWxfc2hhcmVzAAAAAAAAAAEAAAAG",
         "AAAAAAAAAAAAAAAJaXNfcGF1c2VkAAAAAAAAAAAAAAEAAAAB",
         "AAAAAAAAAAAAAAAFcHJpY2UAAAAAAAAAAAAAAQAAAAY=",
@@ -2230,6 +2334,10 @@ export class Client extends ContractClient {
         "AAAAAAAAAAAAAAARd2hpdGVsaXN0X2VuYWJsZWQAAAAAAAAAAAAAAQAAAAE=",
         "AAAAAAAAAAAAAAAOaXNfd2hpdGVsaXN0ZWQAAAAAAAEAAAAAAAAABmNhbGxlcgAAAAAAEwAAAAEAAAAB",
         "AAAAAAAAAAAAAAASbWluX3NoYXJlc190b19taW50AAAAAAAAAAAAAQAAAAY=",
+        "AAAAAAAAAAAAAAAUZ2V0X3dpdGhkcmF3X3JlcXVlc3QAAAABAAAAAAAAAApyZXF1ZXN0X2lkAAAAAAAGAAAAAQAAA+0AAAAEAAAABgAAAAYAAAAGAAAABg==",
+        "AAAAAAAAAAAAAAAPdGhlb3JldGljYWxfb3V0AAAAAAIAAAAAAAAABnNoYXJlcwAAAAAABgAAAAAAAAAFcHJpY2UAAAAAAAAGAAAAAQAAAAY=",
+        "AAAAAAAAAAAAAAAZdG90YWxfd2l0aGRyYXdhbHNfcGVuZGluZwAAAAAAAAAAAAABAAAABg==",
+        "AAAAAAAAAAAAAAARc2hhcmVzX2luX2N1c3RvZHkAAAAAAAAAAAAAAQAAAAY=",
         "AAAAAAAAAAAAAAAMdG90YWxfc3VwcGx5AAAAAAAAAAEAAAAL",
         "AAAAAAAAAAAAAAAHYmFsYW5jZQAAAAABAAAAAAAAAAdhY2NvdW50AAAAABMAAAABAAAACw==",
         "AAAAAAAAAAAAAAAJYWxsb3dhbmNlAAAAAAAAAgAAAAAAAAAFb3duZXIAAAAAAAATAAAAAAAAAAdzcGVuZGVyAAAAABMAAAABAAAACw==",
@@ -2325,6 +2433,7 @@ export class Client extends ContractClient {
         accept_allowlist_mint: this.txFromJSON<Result<void>>,
         cancel_allowlist_mint: this.txFromJSON<Result<void>>,
         write_vault_total_shares: this.txFromJSON<Result<void>>,
+        total_idle: this.txFromJSON<u64>,
         total_shares: this.txFromJSON<u64>,
         is_paused: this.txFromJSON<boolean>,
         price: this.txFromJSON<u64>,
@@ -2333,6 +2442,10 @@ export class Client extends ContractClient {
         whitelist_enabled: this.txFromJSON<boolean>,
         is_whitelisted: this.txFromJSON<boolean>,
         min_shares_to_mint: this.txFromJSON<u64>,
+        get_withdraw_request: this.txFromJSON<readonly [u64, u64, u64, u64]>,
+        theoretical_out: this.txFromJSON<u64>,
+        total_withdrawals_pending: this.txFromJSON<u64>,
+        shares_in_custody: this.txFromJSON<u64>,
         total_supply: this.txFromJSON<i128>,
         balance: this.txFromJSON<i128>,
         allowance: this.txFromJSON<i128>,

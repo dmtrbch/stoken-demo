@@ -4,6 +4,7 @@ import ConnectWallet from "../components/ConnectWallet.astro";
 import Deposit from "../components/Deposit.astro";
 import Mint from "../components/Mint.astro";
 import Withdraw from "../components/Withdraw.astro";
+import WithdrawRequest from "../components/WithdrawRequest.astro";
 import ProcessDeposit from "../components/ProcessDeposit.astro";
 import FulfillWithdrawal from "../components/FulfillWithdrawal.astro";
 import stoken from "../contracts/stoken";
@@ -59,6 +60,7 @@ const { result: isPaused } = await stoken.is_paused();
 		<Mint />
 		<Deposit />
 		<Withdraw />
+		<WithdrawRequest />
 		<div id="process-deposit-container" style="display: none;">
 			<ProcessDeposit />
 		</div>
