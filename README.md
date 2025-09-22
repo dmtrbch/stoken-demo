@@ -39,6 +39,47 @@ NOTE: Process Deposit and Fulfill Withdrawal components are only displayed if th
 6. Processor fulfills the withdrawal
 7. User logs in, we can see that his AST balance is increased (we also account for withdrawal fee)
 
+## Local Development
+
+1. Install the Javascript dependencies:
+
+```bash
+npm install
+```
+
+2. When new contracts are deployed (asset and/or stoken) we need to update these addresses in `.stellar/contract-ids/`, and generate NPM packages for the contracts:
+
+```bash
+stellar contract bindings typescript \
+  --network testnet \
+  --contract-id asset \
+  --output-dir packages/asset
+
+cd packages/asset
+npm install
+npm run build
+cd ..
+cd ..
+```
+*This should be done for every contract we want to generate packages for. Sometimes the exported typesp and interfaces in `packages/(some_contract)/src/index.ts` might have linting errors in them so we need to manually fix them.
+
+3. We need to make sure that `initialize.js` has all of the environment variables it needs before we do anything else.
+
+```bash
+cp .env.example .env
+```
+
+4. Then run `initialize.js`:
+
+```bash
+npm run init
+```
+
+5. Start the dev server:
+
+```bash
+npm run dev
+```
 
 ## Smart Contract Addresses
 
