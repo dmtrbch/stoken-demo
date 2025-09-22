@@ -1,20 +1,53 @@
-# Soroban Frontend in Astro
+# SToken Stellar Front-End
 
-A Frontend Template suitable for use with `soroban contract init --frontend-template`, powered by [Astro](https://astro.build/).
+## Deployed version url
 
-# Getting Started
+https://dmtrbch.github.io/stoken-demo/
 
-- `cp .env.example .env`
-- `npm install`
-- `npm run dev`
+## Project Description
 
-# How it works
+Decentralized Application that allows the user to deposit/withdraw funds to/from the SToken Vault, and get shares in return, and allows the Processor account to process deposits and fulfill withdrawals.
 
-If you look in [package.json](./package.json), you'll see that the `start` & `dev` scripts first run the [`initialize.js`](./initialize.js) script. This script loops over all contracts in `contracts/*` and, for each:
+NOTE: Process Deposit and Fulfill Withdrawal components are only displayed if the connected account is the processor. 
 
-1. Deploys to a local network (_needs to be running with `docker run` or `soroban network start`_)
-2. Saves contract IDs to `.soroban/contract-ids`
-3. Generates TS bindings for each into the `packages` folder, which is set up as an [npm workspace](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#workspaces)
-4. Create a file in `src/contracts` that imports the contract client and initializes it for the `standalone` network.
+## Directory structure
 
-You're now ready to import these initialized contract clients in your [Astro templates](https://docs.astro.build/en/core-concepts/astro-syntax/) or your [React, Svelte, Vue, Alpine, Lit, and whatever else JS files](https://docs.astro.build/en/core-concepts/framework-components/#official-ui-framework-integrations). You can see an example of this in [index.astro](./src/pages/index.astro).
+- `components`: UI Components for interacting with the deployed smart contract.
+- `contracts`: Typescript Interfaces that expose smart contract functionality.
+- `layouts`: Main Page Layout
+- `pages`: Entry index.astro page
+
+## Components
+
+- `ConnectWallet.astro` - component which is using  `stellar-wallets-kit` to add wallet connection functionality to the dapp
+- `Mint.astro` - for minting underlying asset
+- `Deposit.astro` for depositing underlying asset into the SToken vault
+- `ProcessDeposit.astro` - only displayed if connected address is processor one. Used to process the deposits, this means sending the underlying asset from SToken Vault custody to the Asset Manager
+- `Withdraw.astro` - for requesting a withdraw
+- `FulfillWithdrawal.astro` - only displayed if connected address is processor one. If there is a pending withdrawal calling this function will send the underlying asset from SToken Vault to the user
+- `WithdrawRequest.astro` - fetching details for a withdrawal request
+
+## Demo walkthrough
+
+- VIDEO: https://www.loom.com/share/17cd1cfb7a6f4a419e60278f677b759d?sid=8c6cada4-21d5-40a9-86da-073e681b6493
+
+1. User logs in, mints 200 tokens (underlying asset).
+2. User deposits 200 tokens into SToken vault, gets 39,6 shares (price per share is 5, and we account for a deposit fee)
+3. Processor logs in, calling Process Deposit to process 50 tokens, and those tokens are transferred from SToken Vault to Asset Manager
+4. User logs in, to request a withdrawal of 10 shares - new withdrawal request is generated with ID = 2 (this is incremental)
+5. Processor logs in, gets withdrawal request details
+6. Processor fulfills the withdrawal
+7. User logs in, we can see that his AST balance is increased (we also account for withdrawal fee)
+
+
+## Smart Contract Addresses
+
+- SToken: CB7U3MEFKRFGVWBRBYQI5LGBR4Q542AUGKEK5ABXUVLCQXSZ5FLEKGGE
+- Underlying Asset: CAGMY5JSG6CSJMLBBVQKQZYYO3PNW2YZUGBJ34OUYT2S75XERR7FVXTR
+
+## Identites:
+
+- Authority: GAZA64NGTZPSIML5BDJD7DNLVCUXQAWTH7GJAYNVKQ7QGEUUZZ6NLSVT
+- Manager: GCGLDPZ4HXYBKMNGGDYTQV6N3YYFGXCEZ5AJQYBTWA4KG7WBYR5A7EHT
+- Processor: GBKI6GEUE5D4DKLXXXFZ53KDJ6JYWPHPRM56VJNRAZPWQY7EDQTKRYCL
+- User: GDAWGUAGW75U5XE2IV6DII67TMWDDFULMQSFY3BKHKY2AHOM2N3OLSZ6
