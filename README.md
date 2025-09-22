@@ -61,7 +61,7 @@ npm run build
 cd ..
 cd ..
 ```
-*This should be done for every contract we want to generate packages for. Sometimes the exported typesp and interfaces in `packages/(some_contract)/src/index.ts` might have linting errors in them so we need to manually fix them.
+*This should be done for every contract we want to generate packages for. Sometimes the exported types and interfaces in `packages/(some_contract)/src/index.ts` might have linting errors in them so we need to manually fix them.
 
 3. We need to make sure that `initialize.js` has all of the environment variables it needs before we do anything else.
 
