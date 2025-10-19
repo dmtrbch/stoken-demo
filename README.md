@@ -6,7 +6,11 @@ https://dmtrbch.github.io/stoken-demo/
 
 ## Project Description
 
-Decentralized Application that allows the user to deposit/withdraw funds to/from the SToken Vault, and get shares in return, and allows the Processor account to process deposits and fulfill withdrawals.
+Admin Dasboard for the SToken protocol that has exported interfaces for the following functions from the SToken Vault, and get shares in return, and allows the Processor account to process deposits and fulfill withdrawals.
+- `mint` - permissionless mint of underlying asset (USDC)
+- `process_deposit` - Processor gated function for processing deposit - this function transfers the underlying asset from SToken Vault to Asset Manager
+- `fulfill_withdrawal` - Processor gated function for fulfilling withdrawal - this function transfers the underlying asset from SToken Vault to the user that requested the withdrawal
+- `withdraw_request` - fetch details for a specific withdrawal
 
 NOTE: Process Deposit and Fulfill Withdrawal components are only displayed if the connected account is the processor. 
 
@@ -21,9 +25,7 @@ NOTE: Process Deposit and Fulfill Withdrawal components are only displayed if th
 
 - `ConnectWallet.astro` - component which is using  `stellar-wallets-kit` to add wallet connection functionality to the dapp
 - `Mint.astro` - for minting underlying asset
-- `Deposit.astro` for depositing underlying asset into the SToken vault
 - `ProcessDeposit.astro` - only displayed if connected address is processor one. Used to process the deposits, this means sending the underlying asset from SToken Vault custody to the Asset Manager
-- `Withdraw.astro` - for requesting a withdraw
 - `FulfillWithdrawal.astro` - only displayed if connected address is processor one. If there is a pending withdrawal calling this function will send the underlying asset from SToken Vault to the user
 - `WithdrawRequest.astro` - fetching details for a withdrawal request
 
@@ -83,8 +85,8 @@ npm run dev
 
 ## Smart Contract Addresses
 
-- SToken: CB7U3MEFKRFGVWBRBYQI5LGBR4Q542AUGKEK5ABXUVLCQXSZ5FLEKGGE
-- Underlying Asset: CAGMY5JSG6CSJMLBBVQKQZYYO3PNW2YZUGBJ34OUYT2S75XERR7FVXTR
+- SToken: CCXAU7WTWO4VM5WO4E7IYHXV76NHM5PLEYPXQTHL22NAOJ5PPRJPOUZJ - FYA
+- Underlying Asset: CDLV5RUYLE2PI6IQLMKOGCTZ64MFQN32SFCH6UT2F23KBCQXCQXXES6C - USDC
 
 ## Identites:
 
