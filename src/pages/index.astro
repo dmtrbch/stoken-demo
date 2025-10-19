@@ -2,13 +2,13 @@
 import Layout from "../layouts/Layout.astro";
 import ConnectWallet from "../components/ConnectWallet.astro";
 // import Deposit from "../components/Deposit.astro";
-// import Mint from "../components/Mint.astro";
+import Mint from "../components/Mint.astro";
 // import Withdraw from "../components/Withdraw.astro";
 import WithdrawRequest from "../components/WithdrawRequest.astro";
 import ProcessDeposit from "../components/ProcessDeposit.astro";
 import FulfillWithdrawal from "../components/FulfillWithdrawal.astro";
 import stoken from "../contracts/stoken";
-// import asset from "../contracts/asset";
+import asset from "../contracts/asset";
 
 // Format function to convert raw amounts to display format
 function formatAmount(rawAmount: string | number | bigint | undefined): string {
@@ -18,8 +18,8 @@ function formatAmount(rawAmount: string | number | bigint | undefined): string {
 	return (amount / 10000000).toFixed(7).replace(/\.?0+$/, '');
 }
 
-// const { result: assetSymbol } = await asset.symbol();
-// const { result: symbol } = await stoken.symbol();
+const { result: assetSymbol } = await asset.symbol();
+const { result: symbol } = await stoken.name();
 const { result: currentPrice } = await stoken.price();
 const { result: isPaused } = await stoken.is_paused();
 ---
@@ -57,8 +57,8 @@ const { result: isPaused } = await stoken.is_paused();
 		</svg>
 		<h1>S Token Admin</h1>
 		<ConnectWallet />
-		<!-- <Mint />
-		<Deposit />
+		<Mint />
+		<!-- <Deposit />
 		<Withdraw /> -->
 		<WithdrawRequest />
 		<div id="process-deposit-container" style="display: none;">
@@ -68,13 +68,13 @@ const { result: isPaused } = await stoken.is_paused();
 			<FulfillWithdrawal />
 		</div>
 		<p class="instructions">
-			Total (FYA) Shares: <span id="total-shares">Loading...</span><br />
-			Total USDC in Vault: <span id="total-assets-in-vault">Loading...</span><br />
+			Total {symbol} Shares: <span id="total-shares">Loading...</span><br />
+			Total {assetSymbol} in Vault: <span id="total-assets-in-vault">Loading...</span><br />
 			Price Per Share: {formatAmount(currentPrice)}<br />
-			Your FYA Balance: <span id="user-stoken-balance">Loading...</span><br />
-			Your USDC Balance: <span id="user-asset-balance">Loading...</span><br />
-			Asset Manager FYA Balance: <span id="asset-manager-stoken-balance">Loading...</span><br />
-			Asset Manager USDC Balance: <span id="asset-manager-asset-balance">Loading...</span><br />
+			Your {symbol} Balance: <span id="user-stoken-balance">Loading...</span><br />
+			Your {assetSymbol} Balance: <span id="user-asset-balance">Loading...</span><br />
+			Asset Manager {symbol} Balance: <span id="asset-manager-stoken-balance">Loading...</span><br />
+			Asset Manager {assetSymbol} Balance: <span id="asset-manager-asset-balance">Loading...</span><br />
 			Vault Status: {isPaused ? 'Paused' : 'Active'}<br /> 
 		</p>
 	</main>

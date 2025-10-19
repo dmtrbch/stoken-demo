@@ -34,7 +34,7 @@ if (typeof window !== 'undefined') {
 export const networks = {
   testnet: {
     networkPassphrase: "Test SDF Network ; September 2015",
-    contractId: "CB7U3MEFKRFGVWBRBYQI5LGBR4Q542AUGKEK5ABXUVLCQXSZ5FLEKGGE",
+    contractId: "CCXAU7WTWO4VM5WO4E7IYHXV76NHM5PLEYPXQTHL22NAOJ5PPRJPOUZJ",
   }
 } as const
 
@@ -352,8 +352,6 @@ export interface VaultInitConfig {
   withdrawal_ttl_secs: Option<u64>;
 }
 
-
-
 export interface PendingRoles {
   new_accountant: Option<string>;
   new_asset_manager: Option<string>;
@@ -364,7 +362,6 @@ export interface PendingRoles {
 }
 
 
-
 export interface PendingLimits {
   new_max_deviation_bps: Option<u32>;
   new_max_shares_per_user: Option<u64>;
@@ -373,7 +370,6 @@ export interface PendingLimits {
   new_min_shares_to_mint: Option<u64>;
   timestamp: u64;
 }
-
 
 
 export interface PendingCooldowns {

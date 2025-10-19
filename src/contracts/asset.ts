@@ -1,4 +1,4 @@
-import * as Client from '../../packages/asset/src';
+import * as Client from 'asset';
 import { rpcUrl } from './util';
 
 export default new Client.Client({
