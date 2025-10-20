@@ -31,15 +31,7 @@ NOTE: Process Deposit and Fulfill Withdrawal components are only displayed if th
 
 ## Demo walkthrough
 
-- VIDEO: https://www.loom.com/share/17cd1cfb7a6f4a419e60278f677b759d?sid=8c6cada4-21d5-40a9-86da-073e681b6493
-
-1. User logs in, mints 200 tokens (underlying asset).
-2. User deposits 200 tokens into SToken vault, gets 39,6 shares (price per share is 5, and we account for a deposit fee)
-3. Processor logs in, calling Process Deposit to process 50 tokens, and those tokens are transferred from SToken Vault to Asset Manager
-4. User logs in, to request a withdrawal of 10 shares - new withdrawal request is generated with ID = 2 (this is incremental)
-5. Processor logs in, gets withdrawal request details
-6. Processor fulfills the withdrawal
-7. User logs in, we can see that his AST balance is increased (we also account for withdrawal fee)
+- VIDEO: https://www.loom.com/share/29da8f897b9e4609885bf39523bb373f?sid=3b9c7263-6629-403f-a660-593fef3c88e2
 
 ## Local Development
 
