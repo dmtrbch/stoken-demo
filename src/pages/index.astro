@@ -71,8 +71,8 @@ const { result: isPaused } = await stoken.is_paused();
 			Total {symbol} Shares: <span id="total-shares">Loading...</span><br />
 			Total {assetSymbol} in Vault: <span id="total-assets-in-vault">Loading...</span><br />
 			Price Per Share: {formatAmount(currentPrice)}<br />
-			Your {symbol} Balance: <span id="user-stoken-balance">Loading...</span><br />
-			Your {assetSymbol} Balance: <span id="user-asset-balance">Loading...</span><br />
+			User {symbol} Balance: <span id="user-stoken-balance">Loading...</span><br />
+			User {assetSymbol} Balance: <span id="user-asset-balance">Loading...</span><br />
 			Asset Manager {symbol} Balance: <span id="asset-manager-stoken-balance">Loading...</span><br />
 			Asset Manager {assetSymbol} Balance: <span id="asset-manager-asset-balance">Loading...</span><br />
 			Vault Status: {isPaused ? 'Paused' : 'Active'}<br /> 
@@ -190,7 +190,7 @@ const { result: isPaused } = await stoken.is_paused();
 
 		try {
 			// Get user's SToken balance
-			const { result: stokenBalance } = await stoken.balance({ account: publicKey });
+			const { result: stokenBalance } = await stoken.balance({ account: "GDAWGUAGW75U5XE2IV6DII67TMWDDFULMQSFY3BKHKY2AHOM2N3OLSZ6" });
 			const stokenElement = document.getElementById('user-stoken-balance');
 			if (stokenElement) {
 				stokenElement.textContent = formatAmount(stokenBalance);
@@ -211,7 +211,7 @@ const { result: isPaused } = await stoken.is_paused();
 			}
 
 			// Get user's asset balance
-			const { result: assetBalance } = await asset.balance({ account: publicKey });
+			const { result: assetBalance } = await asset.balance({ account: "GDAWGUAGW75U5XE2IV6DII67TMWDDFULMQSFY3BKHKY2AHOM2N3OLSZ6" });
 			const assetElement = document.getElementById('user-asset-balance');
 			if (assetElement) {
 				assetElement.textContent = formatAmount(assetBalance);
